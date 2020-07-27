@@ -1,0 +1,524 @@
+<<<<<<< HEAD
+$ProductID = (get-wmiobject Win32_Product |where {$_.Name -like "FortiClient"}).IdentifyingNumber
+$winReleaseID = (Get-ItemProperty "HKLM:SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+$winProductName = (Get-ItemProperty "HKLM:SOFTWARE\Microsoft\Windows NT\CurrentVersion").ProductName
+$os_lang = (Get-Culture).Name.SubString(0,2).ToUpper()
+
+Function global:BalloonNotify
+{
+    Param (
+	[Parameter(Mandatory=$true)] [String] $Title,
+        [Parameter(Mandatory=$true)] [String] $Message,
+	[Parameter(Mandatory=$true)] [String] $Icon,
+        [Parameter(Mandatory=$false)] [Int] $Delay = 5000
+    )
+	Add-Type -AssemblyName  System.Windows.Forms
+	$ToolTipIcon = Switch ( $Icon ) { 
+            "Warning"    {2; break}
+            "Info"       {1; break}
+            "Error"      {3; break}
+            default      {0; break}
+        }
+     
+        $local:balloon = New-Object System.Windows.Forms.NotifyIcon
+        $path = (Get-Process -id $pid).Path
+        $balloon.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($path) 
+        $balloon.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Warning 
+        $balloon.BalloonTipTitle = $_TipTitle
+        $balloon.BalloonTipText = $_TipText
+        $balloon.Visible = $true 
+        $balloon.ShowBalloonTip($_TipDelay)
+}
+
+######################################################
+		#### Tips for all functions and script PowerShell ####
+        ######################################################		
+		# (WARNING check the use of " and ' its a little bit tricky !)
+		# If you need a path with spaces or specials character you need use this tips :
+		#		"...`"$dirFiles\MSUpdates\Windows6.1-KB2819745-x64-MultiPkg.msu`"..." 	where ... it's eventually other parameters
+		
+		#---------------------------------------------------------------------
+        #------------------- APPLY MSI, TRANSFORM, PATCH AND UPDATE (.MSU)  --
+        #---------------------------------------------------------------------
+        # Install a base MSI
+		#		- Example:  Execute-MSI -Action Install -Path "$DirFiles\AdbeRdr11000_fr_FR.msi"
+		
+		# Install a base MSI and apply parameters
+	    #      	- Example:  Execute-MSI -Action Install -Path "$DirFiles\AdbeRdr11000_fr_FR.msi" -AddParameters 'INSTALLDIR="C:\apps\Application\Client" ADDLOCAL=Legacy_Client,DotNet_Client SSSERVER=cppomsdlg1'		
+		
+		# Install a base MSI and apply a transform (.MST)
+	    #      	- Example:  Execute-MSI -Action Install -Path "$DirFiles\AdbeRdr11000_fr_FR.msi" -Transform "$DirFiles\AdbeRdr11000_fr_FR.mst"
+	    
+		# Install a base MSI and apply a transform (.MST) and parameters
+		#      	- Example: Execute-MSI -Action 'Install' -Path "$DirFiles\Application.msi" -Transform "$DirFiles\Application.mst" -AddParameters 'INSTALLDIR="C:\apps\Application\Client" ADDLOCAL=Legacy_Client,DotNet_Client SSSERVER=cppomsdlg1'
+        
+		# Install a patch (.MSP)
+        #      	- Example1: Execute-MSI -Action Patch -Path 'AdbeRdrUpd11013.msp'
+		#		- Example2: Install-MSUpdates -Directory "$dirFiles\Update\AdbeRdrUpd11013.msp"
+        
+		# Install Update file (.MSU)
+        #      - Example1: Install-MSUpdates -Directory "$dirFiles\MSUpdates\xxx.msu"
+        #      - Example2: Execute-Process -Path "C:\Windows\system32\wusa.exe" -Parameters "`"$dirFiles\MSUpdates\Windows6.1-KB2819745-x64-MultiPkg.msu`" /quiet /norestart" -WindowStyle 'Hidden'
+		
+        #---------------------------------------------------------------------
+        #------------------- EXECUTE PROCESS  --------------------------------
+        #---------------------------------------------------------------------
+        # Execute a process without arguments
+        #      - Example: Execute-Process -Path "$dirFiles\VideoLAN\VLC\install.exe"
+        
+		# Execute a process with optional arguments
+        #      - Example: Execute-Process -Path "$dirFiles\VideoLAN\VLC\install.exe" -Parameters '/S' -WindowStyle 'Hidden'
+		
+		# Execute a process with many parameters 
+        #      - Example1: Execute-Process -Path "C:\Windows\system32\wusa.exe" -Parameters "`"$dirFiles\MSUpdates\Windows6.1-KB2819745-x64-MultiPkg.msu`" /quiet /norestart" -WindowStyle 'Hidden'
+		#      - Example2: Execute-Process -Path "$dirFiles\CanDealLiveW.801ZS.exe" -Parameters  "/s /SMS /f1`"$dirFiles\setup.iss`" /bc:\temp /f2`"c:\temp\setup.log`""   -WindowStyle 'Hidden'
+        
+		# Execute a process with built-in executables like : xcopy, regedit etc... 
+		#      - Example: Execute-Process -Path "C:\Windows\system32\xcopy.exe" -Parameters "`"$dirFiles\*.*`" `"C:\Program Files (x86)\AIM\*.*`" /S /Q /Y" -WindowStyle 'Hidden'
+		
+		# Add a firewall rule (Fill fields :  name= ; program= ; protocol= ; dir= ; profile=)
+		#      - Example: Execute-Process -FilePath "C:\Windows\System32\netsh.exe" -Parameters "advfirewall firewall add rule name="dbeaver" program="C:\program files\dbeaver\dbeaver.exe" protocol=tcp dir=in enable=yes action=allow profile=Domain"
+		
+        #---------------------------------------------------------------------
+        #------------------- REGISTRY OPERATION ------------------------------
+        #---------------------------------------------------------------------
+        # Create or Set a Registry Key
+        #      - Example: Set-RegistryKey -Key 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'Debugger' -Value $blockedAppDebuggerValue -Type String
+       
+		# Import a .reg file
+        #      - Example1: Execute-process -path "C:\Windows\regedit.exe" -Parameters "/s `"$dirFiles\OracleClient.reg`" /reg:32"	#To force importation into 32 bits hives
+        #      - Example2: Execute-process -path "C:\Windows\regedit.exe" -Parameters "/s `"$dirFiles\OracleClient.reg`" /reg:64"	#To force importation into 64 bits hives
+
+		#---------------------------------------------------------------------
+        #------------------- FILES AND FOLDER OPERATION ----------------------
+        #---------------------------------------------------------------------
+        # Copy a file
+        #      - Example: Copy-File -Path "$dirSupportFiles\MyApp.ini" -Destination "$envWindir\MyApp.ini"
+        
+		# Copy a bunch of files
+        #      - Example1:	Copy-File -Path "$dirSupportFiles\*.*" -Destination "$envTemp\tempfiles"
+		
+		# Copy a bunch of files and all subfolders
+        #      - Example2: 	Execute-Process -Path "C:\Windows\system32\xcopy.exe" -Parameters "`"$dirFiles\*.*`" `"C:\Program Files (x86)\AIM\*.*`" /S /Q /Y" -WindowStyle 'Hidden'
+        #      - Example3: 	Copy-Item -Path "$DirFiles\SourceFolder\*.*" -Destination "C:\DestinationFolder" -Recurse -Force
+        
+		# Remove a File
+        #      - Example1: Remove-File -Path "$envCommonDesktop\FileMaker Pro.lnk"				#Remove Shortcut on Public Desktop
+        #      - Example2: Remove-File -Path 'C:\Windows\Downloaded Program Files\Temp.inf'
+        
+		# Create a New Folder
+        #      - Example: New-Folder -Path "$envWinDir\System32"
+        
+		# Remove a Folder
+        #      - Example: Remove-Folder -Path "$envWinDir\Downloaded Program Files"
+		
+		#---------------------------------------------------------------------
+        #------------------- CREATE A SHORTCUT -------------------------------
+        #---------------------------------------------------------------------
+        # Create a Shortcut with an Icon
+        #      - Example: New-Shortcut -Path "$envProgramData\Microsoft\Windows\Start Menu\Programs\Aim .lnk" -TargetPath "$envProgramFilesX86\AIM\Aim.exe" -IconLocation "$envProgramFilesX86\AIM\Aim.exe" -Description 'Aim' -WorkingDirectory "$envProgramFilesX86\AIM"
+		
+		#---------------------------------------------------------------------
+        #------------------- ACTIVE SETUP SCRIPT and ALTERNATIVE -------------
+        #---------------------------------------------------------------------
+        # Active Setup Alternative.  
+        # ----------------------------------
+        # The advantage of using this function over ActiveSetup is that a user does not have to log off and log back on before the changes take effect.
+        # Set HKCU registry settings for all current users by loading their NTUSER.dat registry hive file, and making the modifications.
+        # Also set it for future users by loading and modify the Default User registry hive used to provision the registry for new users.
+        # It also speed up the logon process (Nothing to execute at logon like ActiveSetup does each time.)
+        #      - Example: 
+        #                  [scriptblock]$HKCURegistrySettings = {
+        #                  Set-RegistryKey -Key 'HKEY_CURRENT_USER\SOFTWARE\Microsoft\Silverlight' -Name 'UpdateMode' -Value "00000002" -Type DWord -SID $UserProfile.SID
+        #                  }
+        #                  Invoke-HKCURegistrySettingsForAllUsers -RegistrySettings $HKCURegistrySettings
+        
+		# Classic Active Setup.
+        # ----------------------------------
+        # Can be used to import a RegFile.  Users have to close and re-open their session to get the new settings.
+        #      - Example: 
+        #                  New-Folder -Path "C:\PROGRAMDATA\ActiveSetup"
+		#                  Copy-Item "$dirFiles\RightFax.reg" -Destination "C:\PROGRAMDATA\ActiveSetup\" -Force
+		#                  Set-ActiveSetup -StubExePath "C:\Windows\SysWOW64\reg.exe" -Arguments "IMPORT $env:PROGRAMDATA\ActiveSetup\RightFax.reg" -Description 'RightFax' -Key 'RightFax'
+        #
+
+        #---------------------------------------------------------------------
+        #----------- CHANGE SECURITY FOR FILES AND/OR FOLDERS ----------------
+        #---------------------------------------------------------------------
+        # This script detect the OS language and set the security for French or English users account ("Users/Utilisateurs") to files and/or folders
+        #
+        # Grant "Modify" access to files only, in a folder and all its subfolders.  
+        # This is a more secure way to apply rights, because the user can only "Modify" existing files, and cannot create new files or Folders.
+        #      - Example: 
+        #                    $os_lang = (Get-WmiObject Win32_OperatingSystem).oslanguage -eq '1036' -or (Get-WmiObject Win32_OperatingSystem).oslanguage -eq '3084'
+        #
+        #                    if ($os_lang -eq "True") {
+        #                        #OS_Language "Fr"
+        #                    Execute-Process -Path "C:\Windows\system32\Icacls.exe" -Parameters "`"C:\Program Files (x86)\Moodys Analytics`" /grant Users:(M,WDAC) /T"
+        #                        }
+        #                    else {
+	    #                        #OS_Language "Autre"
+        #                    Execute-Process -Path "C:\Windows\system32\Icacls.exe" -Parameters "`"C:\Program Files (x86)\Moodys Analytics`" /grant Utilisateurs:(M,WDAC) /T"
+        #                    }
+        #           
+        #
+        # Grant access to a folder and all subfolders and files.
+        #      - Example: 
+        #
+		#					$os_lang = (Get-WmiObject Win32_OperatingSystem).oslanguage -eq '1036' -or (Get-WmiObject Win32_OperatingSystem).oslanguage -eq '3084'
+        #
+        #                    if ($os_lang -eq "True") {
+        #                        #OS_Language "Fr"
+		#						Execute-Process -Path "C:\Windows\system32\icacls.exe" -Parameters "`"$envProgramFilesX86\Emacs`" /C /grant `"Utilisateurs`":(OI)(CI)(M)"
+        #                        }
+        #                    else {
+	    #                        #OS_Language "Autre"
+		#						Execute-Process -Path "C:\Windows\system32\icacls.exe" -Parameters "`"$envProgramFilesX86\Emacs`" /C /grant `"Users`":(OI)(CI)(M)"						
+        #                    }
+        #
+        #---------------------------------------------------------------------
+        #----------- CONFIGURER COMPATIBILITY MODE ----------------
+        #---------------------------------------------------------------------
+		# 	-CompatibilityModes disponibles :  "Windows95" "Windows98" "WindowsXPSP2" "WindowsXPSP3" "Windows7" "Windows8"
+		
+		#	Set-ApplicationCompatibility -ApplicationLocation "$envProgramFilesX86\Adobe\Reader 11.0\Reader\AcroRd32.exe" -CompatibilityModes Windows8 
+		#	Set-ApplicationCompatibility -ApplicationLocation "F:\application.exe" -DisplaySettings "256Colors" -CompatibilityModes Windows7
+        #---------------------------------------------------------------------
+    ## Show Welcome Message, close Internet Explorer with a 60 second countdown before automatically closing
+		#Show-InstallationWelcome -CloseApps 'iexplore' -CloseAppsCountdown 60
+		
+		## Show Progress Message (with the default message)
+		# Show-InstallationProgress -WindowLocation 'BottomRight'
+
+        # $result = Get-PropOrNull (Get-ItemProperty 'HKLM:SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\TVSU_is1') 'QuietUninstallString'
+		# $parm = ''
+		
+		# If( $result ) {
+		#	Write-Log -Message $result -Severity 3 -Source $deployAppScriptFriendlyName
+		#	Execute-Process -Path $result -WindowStyle 'Hidden'
+		# }
+
+		
+        #---------------------------------------------------------------------
+		#---------------------- MSI APPLICATION REMOVAL ----------------------
+        #---------------------------------------------------------------------
+		# Uninstalls an MSI using a product code
+		#	   - Example: Execute-MSI -Action 'Uninstall' -Path '{26923b43-4d38-484f-9b9e-de460746276c}'
+        # Removes all MSI applications of the software that match the name "Adobe Flash"
+        #      - Example:  Remove-MSIApplications -Name 'Adobe Flash'
+        # Removes all MSI applications and versions of the software that match the name "LatentZero Minerva  11.0  Client(Update 067)" if only the "DisplayVersion" have an EXACT match for "11.00.0008"
+        #      - Example:  Remove-MSIApplications -Name "LatentZero Minerva  11.0  Client(Update 067)" -FilterApplication @(,,@('DisplayVersion', '11.00.0008', 'Exact')) 
+        # Removes all MSI applications that match the EXACT name "Adobe Flash Player (x64)"
+        #      - Example:  Remove-MSIApplications -Exact 'Adobe Flash Player (x64)'
+        #---------------------------------------------------------------------
+        #---------------------- EXECUTE PROCESS ------------------------------
+        #---------------------------------------------------------------------
+        # Removes MSI application with Execute-Process command
+        #      - Example: Execute-Process -Path 'C:\Windows\system32\msiexec.exe' -Parameters '/x {E60146B0-C083-47BE-BD6B-EFA57AC8D9B1} REBOOT=ReallySuppress RUNBYRIGHTFAXSETUP=1 /qn' -WindowStyle 'Hidden'
+		#      - Example: Execute-Process -Path "C:\Program Files (x86)\InstallShield Installation Informat.....D9C0FEA6}\setup.exe" -Parameters  "/s /SMS /f1`"$dirFiles\Unsetup.iss`" /f2`"c:\temp\Unsetup.log`""   -WindowStyle 'Hidden'
+
+		# Remove a firewall rule 
+		#      - Example: Execute-Process -Path "C:\Windows\system32\xcopy.exe" -Parameters "`"$dirFiles\*.*`" `"C:\Program Files (x86)\AIM\*.*`" /S /Q /Y" -WindowStyle 'Hidden'
+		
+        #---------------------------------------------------------------------
+        #---------------------- UNINSTALL KB MICROSOFT -----------------------
+        #---------------------------------------------------------------------
+        # Uninstall a KB (Microsoft)
+        #      - Example: Execute-Process -Path "wusa.exe" -Parameters  '/uninstall /kb:917607 /quiet /norestart' -WindowStyle 'Hidden'
+        #---------------------------------------------------------------------
+        #---------------------- REGISTRY OPERATION ---------------------------
+        #---------------------------------------------------------------------
+        # Remove a Registry Key
+        #      - Example: Remove-RegistryKey -Key 'HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\WinHelp' -Name 'AllowIntranetAccess'
+        #---------------------------------------------------------------------
+        #---------------------- FILES AND FOLDERS OPERATIONS -----------------
+        #---------------------------------------------------------------------
+        # Remove File
+        #      - Example: Remove-File -Path 'C:\Windows\Downloaded Program Files\Temp.inf'
+        # Remove All Files recursively in a directory
+        #      - Example: Remove-File -Path 'C:\Windows\Downloaded Program Files' -Recurse
+        # Remove Folder and all subfolder
+        #      - Example: Remove-Folder -Path "$envWinDir\Downloaded Program Files"
+        #---------------------------------------------------------------------
+
+        #---------------------------------------------------------------------
+        #----------- CONFIGURER COMPATIBILITY MODE ----------------
+        #---------------------------------------------------------------------
+		# 		
+		#	Remove-ApplicationCompatibility -ApplicationLocation "$envProgramFilesX86\Adobe\Reader 11.0\Reader\AcroRd32.exe" 
+		#	Remove-ApplicationCompatibility -ApplicationLocation "F:\application.exe"
+        #---------------------------------------------------------------------	
+
+        ## Show Welcome Message, close Internet Explorer if required, allow up to 3 deferrals, verify there is enough disk space to complete the install, and persist the prompt
+		# Show-InstallationWelcome -CloseApps 'iexplore' -AllowDefer -DeferTimes 3 -CheckDiskSpace -PersistPrompt
+		
+		## Show Progress Message (with the default message)
+		# Show-InstallationProgress -WindowLocation 'BottomRight'
+		
+        ###################################################
+        #### ATTENTION SI DÉPLOYÉ DANS L'IMAGE DE BASE ####
+		#### ATTENTION SI DÉPLOYÉ DANS L'IMAGE DE BASE ####  Vous devez mettre en remarque les lignes suivantes, il y a toujours des Reboot pending lors du déploiement de l'image ! 
+        #### ATTENTION SI DÉPLOYÉ DANS L'IMAGE DE BASE ####
+=======
+$ProductID = (get-wmiobject Win32_Product |where {$_.Name -like "FortiClient"}).IdentifyingNumber
+$winReleaseID = (Get-ItemProperty "HKLM:SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+$winProductName = (Get-ItemProperty "HKLM:SOFTWARE\Microsoft\Windows NT\CurrentVersion").ProductName
+$os_lang = (Get-Culture).Name.SubString(0,2).ToUpper()
+
+Function global:BalloonNotify
+{
+    Param (
+	[Parameter(Mandatory=$true)] [String] $Title,
+        [Parameter(Mandatory=$true)] [String] $Message,
+	[Parameter(Mandatory=$true)] [String] $Icon,
+        [Parameter(Mandatory=$false)] [Int] $Delay = 5000
+    )
+	Add-Type -AssemblyName  System.Windows.Forms
+	$ToolTipIcon = Switch ( $Icon ) { 
+            "Warning"    {2; break}
+            "Info"       {1; break}
+            "Error"      {3; break}
+            default      {0; break}
+        }
+     
+        $local:balloon = New-Object System.Windows.Forms.NotifyIcon
+        $path = (Get-Process -id $pid).Path
+        $balloon.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($path) 
+        $balloon.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Warning 
+        $balloon.BalloonTipTitle = $_TipTitle
+        $balloon.BalloonTipText = $_TipText
+        $balloon.Visible = $true 
+        $balloon.ShowBalloonTip($_TipDelay)
+}
+
+######################################################
+		#### Tips for all functions and script PowerShell ####
+        ######################################################		
+		# (WARNING check the use of " and ' its a little bit tricky !)
+		# If you need a path with spaces or specials character you need use this tips :
+		#		"...`"$dirFiles\MSUpdates\Windows6.1-KB2819745-x64-MultiPkg.msu`"..." 	where ... it's eventually other parameters
+		
+		#---------------------------------------------------------------------
+        #------------------- APPLY MSI, TRANSFORM, PATCH AND UPDATE (.MSU)  --
+        #---------------------------------------------------------------------
+        # Install a base MSI
+		#		- Example:  Execute-MSI -Action Install -Path "$DirFiles\AdbeRdr11000_fr_FR.msi"
+		
+		# Install a base MSI and apply parameters
+	    #      	- Example:  Execute-MSI -Action Install -Path "$DirFiles\AdbeRdr11000_fr_FR.msi" -AddParameters 'INSTALLDIR="C:\apps\Application\Client" ADDLOCAL=Legacy_Client,DotNet_Client SSSERVER=cppomsdlg1'		
+		
+		# Install a base MSI and apply a transform (.MST)
+	    #      	- Example:  Execute-MSI -Action Install -Path "$DirFiles\AdbeRdr11000_fr_FR.msi" -Transform "$DirFiles\AdbeRdr11000_fr_FR.mst"
+	    
+		# Install a base MSI and apply a transform (.MST) and parameters
+		#      	- Example: Execute-MSI -Action 'Install' -Path "$DirFiles\Application.msi" -Transform "$DirFiles\Application.mst" -AddParameters 'INSTALLDIR="C:\apps\Application\Client" ADDLOCAL=Legacy_Client,DotNet_Client SSSERVER=cppomsdlg1'
+        
+		# Install a patch (.MSP)
+        #      	- Example1: Execute-MSI -Action Patch -Path 'AdbeRdrUpd11013.msp'
+		#		- Example2: Install-MSUpdates -Directory "$dirFiles\Update\AdbeRdrUpd11013.msp"
+        
+		# Install Update file (.MSU)
+        #      - Example1: Install-MSUpdates -Directory "$dirFiles\MSUpdates\xxx.msu"
+        #      - Example2: Execute-Process -Path "C:\Windows\system32\wusa.exe" -Parameters "`"$dirFiles\MSUpdates\Windows6.1-KB2819745-x64-MultiPkg.msu`" /quiet /norestart" -WindowStyle 'Hidden'
+		
+        #---------------------------------------------------------------------
+        #------------------- EXECUTE PROCESS  --------------------------------
+        #---------------------------------------------------------------------
+        # Execute a process without arguments
+        #      - Example: Execute-Process -Path "$dirFiles\VideoLAN\VLC\install.exe"
+        
+		# Execute a process with optional arguments
+        #      - Example: Execute-Process -Path "$dirFiles\VideoLAN\VLC\install.exe" -Parameters '/S' -WindowStyle 'Hidden'
+		
+		# Execute a process with many parameters 
+        #      - Example1: Execute-Process -Path "C:\Windows\system32\wusa.exe" -Parameters "`"$dirFiles\MSUpdates\Windows6.1-KB2819745-x64-MultiPkg.msu`" /quiet /norestart" -WindowStyle 'Hidden'
+		#      - Example2: Execute-Process -Path "$dirFiles\CanDealLiveW.801ZS.exe" -Parameters  "/s /SMS /f1`"$dirFiles\setup.iss`" /bc:\temp /f2`"c:\temp\setup.log`""   -WindowStyle 'Hidden'
+        
+		# Execute a process with built-in executables like : xcopy, regedit etc... 
+		#      - Example: Execute-Process -Path "C:\Windows\system32\xcopy.exe" -Parameters "`"$dirFiles\*.*`" `"C:\Program Files (x86)\AIM\*.*`" /S /Q /Y" -WindowStyle 'Hidden'
+		
+		# Add a firewall rule (Fill fields :  name= ; program= ; protocol= ; dir= ; profile=)
+		#      - Example: Execute-Process -FilePath "C:\Windows\System32\netsh.exe" -Parameters "advfirewall firewall add rule name="dbeaver" program="C:\program files\dbeaver\dbeaver.exe" protocol=tcp dir=in enable=yes action=allow profile=Domain"
+		
+        #---------------------------------------------------------------------
+        #------------------- REGISTRY OPERATION ------------------------------
+        #---------------------------------------------------------------------
+        # Create or Set a Registry Key
+        #      - Example: Set-RegistryKey -Key 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'Debugger' -Value $blockedAppDebuggerValue -Type String
+       
+		# Import a .reg file
+        #      - Example1: Execute-process -path "C:\Windows\regedit.exe" -Parameters "/s `"$dirFiles\OracleClient.reg`" /reg:32"	#To force importation into 32 bits hives
+        #      - Example2: Execute-process -path "C:\Windows\regedit.exe" -Parameters "/s `"$dirFiles\OracleClient.reg`" /reg:64"	#To force importation into 64 bits hives
+
+		#---------------------------------------------------------------------
+        #------------------- FILES AND FOLDER OPERATION ----------------------
+        #---------------------------------------------------------------------
+        # Copy a file
+        #      - Example: Copy-File -Path "$dirSupportFiles\MyApp.ini" -Destination "$envWindir\MyApp.ini"
+        
+		# Copy a bunch of files
+        #      - Example1:	Copy-File -Path "$dirSupportFiles\*.*" -Destination "$envTemp\tempfiles"
+		
+		# Copy a bunch of files and all subfolders
+        #      - Example2: 	Execute-Process -Path "C:\Windows\system32\xcopy.exe" -Parameters "`"$dirFiles\*.*`" `"C:\Program Files (x86)\AIM\*.*`" /S /Q /Y" -WindowStyle 'Hidden'
+        #      - Example3: 	Copy-Item -Path "$DirFiles\SourceFolder\*.*" -Destination "C:\DestinationFolder" -Recurse -Force
+        
+		# Remove a File
+        #      - Example1: Remove-File -Path "$envCommonDesktop\FileMaker Pro.lnk"				#Remove Shortcut on Public Desktop
+        #      - Example2: Remove-File -Path 'C:\Windows\Downloaded Program Files\Temp.inf'
+        
+		# Create a New Folder
+        #      - Example: New-Folder -Path "$envWinDir\System32"
+        
+		# Remove a Folder
+        #      - Example: Remove-Folder -Path "$envWinDir\Downloaded Program Files"
+		
+		#---------------------------------------------------------------------
+        #------------------- CREATE A SHORTCUT -------------------------------
+        #---------------------------------------------------------------------
+        # Create a Shortcut with an Icon
+        #      - Example: New-Shortcut -Path "$envProgramData\Microsoft\Windows\Start Menu\Programs\Aim .lnk" -TargetPath "$envProgramFilesX86\AIM\Aim.exe" -IconLocation "$envProgramFilesX86\AIM\Aim.exe" -Description 'Aim' -WorkingDirectory "$envProgramFilesX86\AIM"
+		
+		#---------------------------------------------------------------------
+        #------------------- ACTIVE SETUP SCRIPT and ALTERNATIVE -------------
+        #---------------------------------------------------------------------
+        # Active Setup Alternative.  
+        # ----------------------------------
+        # The advantage of using this function over ActiveSetup is that a user does not have to log off and log back on before the changes take effect.
+        # Set HKCU registry settings for all current users by loading their NTUSER.dat registry hive file, and making the modifications.
+        # Also set it for future users by loading and modify the Default User registry hive used to provision the registry for new users.
+        # It also speed up the logon process (Nothing to execute at logon like ActiveSetup does each time.)
+        #      - Example: 
+        #                  [scriptblock]$HKCURegistrySettings = {
+        #                  Set-RegistryKey -Key 'HKEY_CURRENT_USER\SOFTWARE\Microsoft\Silverlight' -Name 'UpdateMode' -Value "00000002" -Type DWord -SID $UserProfile.SID
+        #                  }
+        #                  Invoke-HKCURegistrySettingsForAllUsers -RegistrySettings $HKCURegistrySettings
+        
+		# Classic Active Setup.
+        # ----------------------------------
+        # Can be used to import a RegFile.  Users have to close and re-open their session to get the new settings.
+        #      - Example: 
+        #                  New-Folder -Path "C:\PROGRAMDATA\ActiveSetup"
+		#                  Copy-Item "$dirFiles\RightFax.reg" -Destination "C:\PROGRAMDATA\ActiveSetup\" -Force
+		#                  Set-ActiveSetup -StubExePath "C:\Windows\SysWOW64\reg.exe" -Arguments "IMPORT $env:PROGRAMDATA\ActiveSetup\RightFax.reg" -Description 'RightFax' -Key 'RightFax'
+        #
+
+        #---------------------------------------------------------------------
+        #----------- CHANGE SECURITY FOR FILES AND/OR FOLDERS ----------------
+        #---------------------------------------------------------------------
+        # This script detect the OS language and set the security for French or English users account ("Users/Utilisateurs") to files and/or folders
+        #
+        # Grant "Modify" access to files only, in a folder and all its subfolders.  
+        # This is a more secure way to apply rights, because the user can only "Modify" existing files, and cannot create new files or Folders.
+        #      - Example: 
+        #                    $os_lang = (Get-WmiObject Win32_OperatingSystem).oslanguage -eq '1036' -or (Get-WmiObject Win32_OperatingSystem).oslanguage -eq '3084'
+        #
+        #                    if ($os_lang -eq "True") {
+        #                        #OS_Language "Fr"
+        #                    Execute-Process -Path "C:\Windows\system32\Icacls.exe" -Parameters "`"C:\Program Files (x86)\Moodys Analytics`" /grant Users:(M,WDAC) /T"
+        #                        }
+        #                    else {
+	    #                        #OS_Language "Autre"
+        #                    Execute-Process -Path "C:\Windows\system32\Icacls.exe" -Parameters "`"C:\Program Files (x86)\Moodys Analytics`" /grant Utilisateurs:(M,WDAC) /T"
+        #                    }
+        #           
+        #
+        # Grant access to a folder and all subfolders and files.
+        #      - Example: 
+        #
+		#					$os_lang = (Get-WmiObject Win32_OperatingSystem).oslanguage -eq '1036' -or (Get-WmiObject Win32_OperatingSystem).oslanguage -eq '3084'
+        #
+        #                    if ($os_lang -eq "True") {
+        #                        #OS_Language "Fr"
+		#						Execute-Process -Path "C:\Windows\system32\icacls.exe" -Parameters "`"$envProgramFilesX86\Emacs`" /C /grant `"Utilisateurs`":(OI)(CI)(M)"
+        #                        }
+        #                    else {
+	    #                        #OS_Language "Autre"
+		#						Execute-Process -Path "C:\Windows\system32\icacls.exe" -Parameters "`"$envProgramFilesX86\Emacs`" /C /grant `"Users`":(OI)(CI)(M)"						
+        #                    }
+        #
+        #---------------------------------------------------------------------
+        #----------- CONFIGURER COMPATIBILITY MODE ----------------
+        #---------------------------------------------------------------------
+		# 	-CompatibilityModes disponibles :  "Windows95" "Windows98" "WindowsXPSP2" "WindowsXPSP3" "Windows7" "Windows8"
+		
+		#	Set-ApplicationCompatibility -ApplicationLocation "$envProgramFilesX86\Adobe\Reader 11.0\Reader\AcroRd32.exe" -CompatibilityModes Windows8 
+		#	Set-ApplicationCompatibility -ApplicationLocation "F:\application.exe" -DisplaySettings "256Colors" -CompatibilityModes Windows7
+        #---------------------------------------------------------------------
+    ## Show Welcome Message, close Internet Explorer with a 60 second countdown before automatically closing
+		#Show-InstallationWelcome -CloseApps 'iexplore' -CloseAppsCountdown 60
+		
+		## Show Progress Message (with the default message)
+		# Show-InstallationProgress -WindowLocation 'BottomRight'
+
+        # $result = Get-PropOrNull (Get-ItemProperty 'HKLM:SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\TVSU_is1') 'QuietUninstallString'
+		# $parm = ''
+		
+		# If( $result ) {
+		#	Write-Log -Message $result -Severity 3 -Source $deployAppScriptFriendlyName
+		#	Execute-Process -Path $result -WindowStyle 'Hidden'
+		# }
+
+		
+        #---------------------------------------------------------------------
+		#---------------------- MSI APPLICATION REMOVAL ----------------------
+        #---------------------------------------------------------------------
+		# Uninstalls an MSI using a product code
+		#	   - Example: Execute-MSI -Action 'Uninstall' -Path '{26923b43-4d38-484f-9b9e-de460746276c}'
+        # Removes all MSI applications of the software that match the name "Adobe Flash"
+        #      - Example:  Remove-MSIApplications -Name 'Adobe Flash'
+        # Removes all MSI applications and versions of the software that match the name "LatentZero Minerva  11.0  Client(Update 067)" if only the "DisplayVersion" have an EXACT match for "11.00.0008"
+        #      - Example:  Remove-MSIApplications -Name "LatentZero Minerva  11.0  Client(Update 067)" -FilterApplication @(,,@('DisplayVersion', '11.00.0008', 'Exact')) 
+        # Removes all MSI applications that match the EXACT name "Adobe Flash Player (x64)"
+        #      - Example:  Remove-MSIApplications -Exact 'Adobe Flash Player (x64)'
+        #---------------------------------------------------------------------
+        #---------------------- EXECUTE PROCESS ------------------------------
+        #---------------------------------------------------------------------
+        # Removes MSI application with Execute-Process command
+        #      - Example: Execute-Process -Path 'C:\Windows\system32\msiexec.exe' -Parameters '/x {E60146B0-C083-47BE-BD6B-EFA57AC8D9B1} REBOOT=ReallySuppress RUNBYRIGHTFAXSETUP=1 /qn' -WindowStyle 'Hidden'
+		#      - Example: Execute-Process -Path "C:\Program Files (x86)\InstallShield Installation Informat.....D9C0FEA6}\setup.exe" -Parameters  "/s /SMS /f1`"$dirFiles\Unsetup.iss`" /f2`"c:\temp\Unsetup.log`""   -WindowStyle 'Hidden'
+
+		# Remove a firewall rule 
+		#      - Example: Execute-Process -Path "C:\Windows\system32\xcopy.exe" -Parameters "`"$dirFiles\*.*`" `"C:\Program Files (x86)\AIM\*.*`" /S /Q /Y" -WindowStyle 'Hidden'
+		
+        #---------------------------------------------------------------------
+        #---------------------- UNINSTALL KB MICROSOFT -----------------------
+        #---------------------------------------------------------------------
+        # Uninstall a KB (Microsoft)
+        #      - Example: Execute-Process -Path "wusa.exe" -Parameters  '/uninstall /kb:917607 /quiet /norestart' -WindowStyle 'Hidden'
+        #---------------------------------------------------------------------
+        #---------------------- REGISTRY OPERATION ---------------------------
+        #---------------------------------------------------------------------
+        # Remove a Registry Key
+        #      - Example: Remove-RegistryKey -Key 'HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\WinHelp' -Name 'AllowIntranetAccess'
+        #---------------------------------------------------------------------
+        #---------------------- FILES AND FOLDERS OPERATIONS -----------------
+        #---------------------------------------------------------------------
+        # Remove File
+        #      - Example: Remove-File -Path 'C:\Windows\Downloaded Program Files\Temp.inf'
+        # Remove All Files recursively in a directory
+        #      - Example: Remove-File -Path 'C:\Windows\Downloaded Program Files' -Recurse
+        # Remove Folder and all subfolder
+        #      - Example: Remove-Folder -Path "$envWinDir\Downloaded Program Files"
+        #---------------------------------------------------------------------
+
+        #---------------------------------------------------------------------
+        #----------- CONFIGURER COMPATIBILITY MODE ----------------
+        #---------------------------------------------------------------------
+		# 		
+		#	Remove-ApplicationCompatibility -ApplicationLocation "$envProgramFilesX86\Adobe\Reader 11.0\Reader\AcroRd32.exe" 
+		#	Remove-ApplicationCompatibility -ApplicationLocation "F:\application.exe"
+        #---------------------------------------------------------------------	
+
+        ## Show Welcome Message, close Internet Explorer if required, allow up to 3 deferrals, verify there is enough disk space to complete the install, and persist the prompt
+		# Show-InstallationWelcome -CloseApps 'iexplore' -AllowDefer -DeferTimes 3 -CheckDiskSpace -PersistPrompt
+		
+		## Show Progress Message (with the default message)
+		# Show-InstallationProgress -WindowLocation 'BottomRight'
+		
+        ###################################################
+        #### ATTENTION SI DÉPLOYÉ DANS L'IMAGE DE BASE ####
+		#### ATTENTION SI DÉPLOYÉ DANS L'IMAGE DE BASE ####  Vous devez mettre en remarque les lignes suivantes, il y a toujours des Reboot pending lors du déploiement de l'image ! 
+        #### ATTENTION SI DÉPLOYÉ DANS L'IMAGE DE BASE ####
+>>>>>>> 334d15f542a70aeade487f0bb8c175b268202912
+        ###################################################
