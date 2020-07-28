@@ -1,0 +1,4 @@
+REBOOT_REQUIRED_FR=Afin de terminer l'installation de cette application, un redémarrage de l'ordinateur est requis.
+REBOOT_REQUIRED_EN=In order to finish the application installation a reboot of the computer required.
+APP_INSTALL_START_EN=Installation started.
+APP_INSTALL_START_FR=Debut de l'installation.
