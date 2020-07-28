@@ -1,40 +1,4 @@
-<<<<<<< HEAD
-ConsignO 3.8.0 ProductID: {1225574F-BBC3-40B1-AFAE-20A80DBC5492}
-ConsignO 3.7.5 ProductID: {9C61C65B-17E9-4468-8D04-B461483C1E7A}
-
-Website : https://www.notarius.com/en/?blsc=true
-
-English Source Files
-https://download.notarius.com/consigno/desktop/consigno-desktop-3.8-en.exe
-https://download.notarius.com/certifio/eesp-9.3-p200436d-en.exe
-https://download.notarius.com/certifio/pdf995-16.0s.exe
-
-French Source Files
-https://download.notarius.com/consigno/desktop/consigno-desktop-3.8-fr.exe
-https://download.notarius.com/certifio/eesp-9.3-p200436d-fr.exe
-https://download.notarius.com/certifio/pdf995-16.0s.exe
-
-Install condition : Is a member of GCAS-APP-Consigno_SCCM_ENFR and Product ID: {1225574F-BBC3-40B1-AFAE-20A80DBC5492} is not installed
-Uninstall condition : Is not a member of GCAS-APP-Consigno_SCCM_ENFR and Product ID: {1225574F-BBC3-40B1-AFAE-20A80DBC5492} is installed
-
-=======
-ConsignO 3.8.0 ProductID: {1225574F-BBC3-40B1-AFAE-20A80DBC5492}
-ConsignO 3.7.5 ProductID: {9C61C65B-17E9-4468-8D04-B461483C1E7A}
-
-Website : https://www.notarius.com/en/?blsc=true
-
-English Source Files
-https://download.notarius.com/consigno/desktop/consigno-desktop-3.8-en.exe
-https://download.notarius.com/certifio/eesp-9.3-p200436d-en.exe
-https://download.notarius.com/certifio/pdf995-16.0s.exe
-
-French Source Files
-https://download.notarius.com/consigno/desktop/consigno-desktop-3.8-fr.exe
-https://download.notarius.com/certifio/eesp-9.3-p200436d-fr.exe
-https://download.notarius.com/certifio/pdf995-16.0s.exe
-
-Install condition : Is a member of GCAS-APP-Consigno_SCCM_ENFR and Product ID: {1225574F-BBC3-40B1-AFAE-20A80DBC5492} is not installed
-Uninstall condition : Is not a member of GCAS-APP-Consigno_SCCM_ENFR and Product ID: {1225574F-BBC3-40B1-AFAE-20A80DBC5492} is installed
-
->>>>>>> 334d15f542a70aeade487f0bb8c175b268202912
-Not to self: GCAS-APP-Consigno_SCCM_ENFR active directory group needs to be created
+- Name of Application
+ProductID: 
+Registry: 
+Icon: \SupportFiles\App.ico
