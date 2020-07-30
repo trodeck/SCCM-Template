@@ -20,10 +20,10 @@ Param (
 ##*===============================================
 
 # Variables: Script
-[string]$appDeployToolkitExtName = 'PSAppDeployToolkitExt'
-[string]$appDeployExtScriptFriendlyName = 'App Deploy Toolkit Extensions'
-[version]$appDeployExtScriptVersion = [version]'1.5.0'
-[string]$appDeployExtScriptDate = '06/11/2015'
+[string]$appDeployToolkitExtName = "PSAppDeployToolkitExt"
+[string]$appDeployExtScriptFriendlyName = "App Deploy Toolkit Extensions"
+[version]$appDeployExtScriptVersion = [version]"1.5.0"
+[string]$appDeployExtScriptDate = "06/11/2015"
 [hashtable]$appDeployExtScriptParameters = $PSBoundParameters
 
 ##*===============================================
@@ -135,7 +135,7 @@ Function Set-ApplicationCompatibility {
 					}
 				}
 			}
-			$RegPath = 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\'
+			$RegPath = "HKLM:\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\"
 			If(Test-Path "$RegPath\Layers")
 			{
 				Set-ItemProperty -Path "$RegPath\Layers" -Name "$ApplicationLocation" -Value "$Rules" -ErrorAction Stop

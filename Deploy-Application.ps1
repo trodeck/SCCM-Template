@@ -35,11 +35,11 @@
 [CmdletBinding()]
 Param (
 	[Parameter(Mandatory=$false)]
-	[ValidateSet('Install','Uninstall')]
+	[ValidateSet("Install","Uninstall")]
 	[string]$DeploymentType = 'Install',
 	[Parameter(Mandatory=$false)]
-	[ValidateSet('Interactive','Silent','NonInteractive')]
-	[string]$DeployMode = 'Interactive',
+	[ValidateSet("Interactive","Silent","NonInteractive")]
+	[string]$DeployMode = "Interactive",
 	[Parameter(Mandatory=$false)]
 	[switch]$AllowRebootPassThru = $false,
 	[Parameter(Mandatory=$false)]
@@ -50,7 +50,7 @@ Param (
 
 Try {
 	## Set the script execution policy for this process
-	Try { Set-ExecutionPolicy -ExecutionPolicy 'ByPass' -Scope 'Process' -Force -ErrorAction 'Stop' } Catch {}
+	Try { Set-ExecutionPolicy -ExecutionPolicy "ByPass" -Scope "Process" -Force -ErrorAction "Stop" } Catch {}
 	
 	##*===============================================
 	##* VARIABLE DECLARATION
@@ -60,20 +60,20 @@ Try {
 	## Entrer le nom complet de l'application tel qu'affiché sous SCCM, la date, ainsi que votre nom
     ##-----------------------------------------------------------------------------------------------
     [string]$appName = ""
-	[string]$appScriptDate = ''
-	[string]$appScriptAuthor = ''
+	[string]$appScriptDate = ""
+	[string]$appScriptAuthor = ""
     ##-----------------------------------------------------------------------------------------------
 	
-	[string]$appVendor = ''
-	[string]$appVersion = ''
-	[string]$appArch = ''
-	[string]$appLang = ''
-	[string]$appRevision = '1.0'
-	[string]$appScriptVersion = '1.0'
+	[string]$appVendor = ""
+	[string]$appVersion = ""
+	[string]$appArch = ""
+	[string]$appLang = ""
+	[string]$appRevision = "1.0"
+	[string]$appScriptVersion = "1.0"
 	##*===============================================
 	## Variables: Install Titles (Only set here to override defaults set by the toolkit)
-	[string]$installName = ''
-	[string]$installTitle = ''
+	[string]$installName = ""
+	[string]$installTitle = ""
 	
 	##* Do not modify section below
 	#region DoNotModify
@@ -82,9 +82,9 @@ Try {
 	[int32]$mainExitCode = 0
 	
 	## Variables: Script
-	[string]$deployAppScriptFriendlyName = 'Deploy Application'
-	[version]$deployAppScriptVersion = [version]'3.6.8'
-	[string]$deployAppScriptDate = '02/06/2016'
+	[string]$deployAppScriptFriendlyName = "Deploy Application"
+	[version]$deployAppScriptVersion = [version]"3.6.8"
+	[string]$deployAppScriptDate = "02/06/2016"
 	[hashtable]$deployAppScriptParameters = $psBoundParameters
 	
 	## Variables: Environment
@@ -114,7 +114,7 @@ Try {
 	#### Includes helper functions for Cascades SCCM  ####
 	######################################################
 			
-	$incSupport = $dirFiles + '\LIBS\Support.ps1'
+	$incSupport = $dirFiles + "\LIBS\Support.ps1"
 	& $incSupport	
 	
 	$os_lang = ((Get-Culture).Name.SubString(0,2)).ToLower() 
@@ -124,11 +124,11 @@ Try {
     ######################################################
 		
     #$deploymentType ="UnInstall"
-	If ($deploymentType -ine 'Uninstall') {
+	If ($deploymentType -ine "Uninstall") {
 		##*===============================================
 		##* PRE-INSTALLATION
 		##*===============================================
-		[string]$installPhase = 'Pre-Installation'
+		[string]$installPhase = "Pre-Installation"
 		
         ## Test si un "reboot pending" est en cours, si oui l'installation ne s'effectue pas et sort en erreur 70000 pour un redemarrage du poste avant installation 
 		if(Test-RebootRequired)
@@ -147,46 +147,46 @@ Try {
 		##*===============================================
 		##* INSTALLATION 
 		##*===============================================
-		[string]$installPhase = 'Installation'
+		[string]$installPhase = "Installation"
 
-		Show-BalloonTip -BalloonTipIcon 'Info' -BalloonTipText (Get-ResourceText -ResourceID "APP_INSTALL_START")
+		Show-BalloonTip -BalloonTipIcon "Info" -BalloonTipText (Get-ResourceText -ResourceID "APP_INSTALL_START")
 
 		#Install the base package
         
 		##*===============================================
 		##* POST-INSTALLATION
 		##*===============================================
-		[string]$installPhase = 'Post-Installation'
+		[string]$installPhase = "Post-Installation"
 		
 		## <Perform Post-Installation tasks here>
 		RegisterSCCMInstall
 
 		If( Test-RebootRequired ) {
-			Show-BalloonTip -BalloonTipIcon 'Warning' -BalloonTipText (Get-ResourceText -ResourceID "REBOOT_REQUIRED")
+			Show-BalloonTip -BalloonTipIcon "Warning" -BalloonTipText (Get-ResourceText -ResourceID "REBOOT_REQUIRED")
 		}
 	}
-	ElseIf ($deploymentType -ieq 'Uninstall')
+	ElseIf ($deploymentType -ieq "Uninstall")
 	{
 		##*===============================================
 		##* PRE-UNINSTALLATION
 		##*===============================================
-		[string]$installPhase = 'Pre-Uninstallation'
+		[string]$installPhase = "Pre-Uninstallation"
 		
 		##*===============================================
 		##* UNINSTALLATION
 		##*===============================================
-		[string]$installPhase = 'Uninstallation'
+		[string]$installPhase = "Uninstallation"
 		
 		##*===============================================
 		##* POST-UNINSTALLATION
 		##*===============================================
-		[string]$installPhase = 'Post-Uninstallation'
+		[string]$installPhase = "Post-Uninstallation"
 		
 		## <Perform Post-Uninstallation tasks here>
 		RegisterSCCMUninstall
 		
 		If( Test-RebootRequired ) {
-			Show-BalloonTip -BalloonTipIcon 'Warning' -BalloonTipText (Get-ResourceText -ResourceID "REBOOT_REQUIRED")
+			Show-BalloonTip -BalloonTipIcon "Warning" -BalloonTipText (Get-ResourceText -ResourceID "REBOOT_REQUIRED")
 		}
 	}
 	
@@ -201,6 +201,6 @@ Catch {
 	[int32]$mainExitCode = 60001
 	[string]$mainErrorMessage = "$(Resolve-Error)"
 	Write-Log -Message $mainErrorMessage -Severity 3 -Source $deployAppScriptFriendlyName
-	Show-DialogBox -Text $mainErrorMessage -Icon 'Stop'
+	Show-DialogBox -Text $mainErrorMessage -Icon "Stop"
 	Exit-Script -ExitCode $mainExitCode
 }
