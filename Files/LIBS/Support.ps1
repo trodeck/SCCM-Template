@@ -315,3 +315,30 @@ Function Global:Remove-Folder
         Return $True 
     }
 }
+
+Function Global:Set-Folder
+{   
+    [CmdletBinding()]
+    param
+    (  
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Path
+    )
+
+    $Parts = $Path.Split("\")
+    $Path = ""
+    ForEach( $Part In $Parts ) {
+        $Path = $Path + $Part
+        If( (Test-Path -Path $Path) -eq $False ) {
+            New-Item -Path $Path -ItemType Directory 
+        }
+        $Path = $Path +"\"
+    }
+     
+    If( (Test-Path -Path $Path) ) {
+        Return $True
+    } Else {
+        Return $False 
+    }
+}

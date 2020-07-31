@@ -159,6 +159,20 @@ Try {
 		[string]$installPhase = "Post-Installation"
 		
 		## <Perform Post-Installation tasks here>
+
+         # Copy files to the Desktop for all users
+        If( Test-Path -Path "$dirFiles\Desktop" ) { 
+            $Path = "$envCommonDesktop"
+            Copy-File -Path "$dirFiles\Desktop\*.*" -Destination $Path -ContinueOnError $False -Recurse
+        }
+
+        # Copy files to the StartMenu for all users
+        If( Test-Path -Path "$dirFiles\StartMenu" ) {
+            $Path = "$envCommonStartMenuPrograms"
+            Set-Folder -Path $Path
+            Copy-File -Path "$dirFiles\StartMenu\*.*" -Destination $Path  -ContinueOnError $False -Recurse
+        }
+
 		RegisterSCCMInstall
 
 		If( Test-RebootRequired ) {
